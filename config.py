@@ -13,7 +13,7 @@ if credentials_base64:
     with open("credentials.json", "w") as f:
         f.write(base64.b64decode(credentials_base64).decode("utf-8"))
 
-GOOGLE_CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_JSON")
+GOOGLE_CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE")
 
 DEFAULT_SHEET_RANGE = os.getenv('DEFAULT_SHEET_RANGE')
 
