@@ -1,5 +1,7 @@
 .env
 /.venv
 logs/*
+credentials.json
+credentials_base64.txt
 .idea
 __pycache__
