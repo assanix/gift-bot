@@ -1,6 +1,7 @@
+# handlers/form.py
+
 import logging
 import os
-
 from aiogram import types, Router, F
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
@@ -12,22 +13,27 @@ from services.google_sheets import append_to_sheet
 from states.order_states import OrderStates
 from utils.file import get_extension
 
+from utils.localization import LOCALIZATIONS, Localization
+
+import uuid
 
 logger = logging.getLogger(__name__)
 form_router = Router()
 
-
 @form_router.message(F.content_type.in_({"photo", "document"}))
-async def handle_check(message: types.Message, state: FSMContext):
+async def handle_check(message: types.Message, state: FSMContext, loc: Localization):
+    user_data = await state.get_data()
+    # loc уже передаётся через middleware
+
     logger.info(f"Пользователь {message.from_user.id} загрузил чек.")
-    processing_message = await message.answer("📥 <i>Обработка вашего файла...</i>")
+    processing_message = await message.answer(loc.processing_file_message)
 
     if message.photo:
         file_id = message.photo[-1].file_id
     elif message.document:
         file_id = message.document.file_id
     else:
-        await message.answer("❗ <b>Ошибка:</b> Пожалуйста, отправьте <u>фото</u> или <u>документ</u> с чеком.")
+        await message.answer(loc.file_error)
         return
 
     file_info = await message.bot.get_file(file_id)
@@ -51,65 +57,76 @@ async def handle_check(message: types.Message, state: FSMContext):
         await state.update_data({"check_link": s3_url})
         logger.info(f"Файл успешно загружен в S3: {s3_url}")
     except Exception as e:
-        await message.answer("❗ Произошла ошибка при загрузке файла в облако. Попробуйте еще раз.")
+        await message.answer(loc.cloud_upload_error)
         logger.error(f"Ошибка загрузки файла: {e}")
+        return
 
     os.remove(local_path)
 
-    await processing_message.edit_text("✅ Чек сохранен!")
-    await message.answer("2/4 Введите, пожалуйста, <b>ваше ФИО</b> 👤:")
+    await processing_message.edit_text(loc.check_saved_message)
+    await message.answer(loc.fio_request)
     await state.set_state(OrderStates.waiting_for_fio)
 
-
 @form_router.message(StateFilter(OrderStates.waiting_for_fio))
-async def handle_fio(message: types.Message, state: FSMContext):
+async def handle_fio(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел ФИО: {message.text.strip()}.")
     await state.update_data({"fio": message.text.strip()})
-    await message.answer("🏠 3/4 Введите, пожалуйста, <b>адрес доставки</b> 📍:")
+    
+    await message.answer(loc.region_request)
+    await state.set_state(OrderStates.waiting_for_region)
+
+@form_router.message(StateFilter(OrderStates.waiting_for_region))
+async def handle_region(message: types.Message, state: FSMContext, loc: Localization):
+    logger.info(f"Пользователь {message.from_user.id} ввел область: {message.text.strip()}.")
+    await state.update_data({"region": message.text.strip()})
+    
+    await message.answer(loc.city_request)
+    await state.set_state(OrderStates.waiting_for_city)
+
+@form_router.message(StateFilter(OrderStates.waiting_for_city))
+async def handle_city(message: types.Message, state: FSMContext, loc: Localization):
+    logger.info(f"Пользователь {message.from_user.id} ввел город: {message.text.strip()}.")
+    await state.update_data({"city": message.text.strip()})
+    
+    await message.answer(loc.address_request)
     await state.set_state(OrderStates.waiting_for_address)
 
-
 @form_router.message(StateFilter(OrderStates.waiting_for_address))
-async def handle_address(message: types.Message, state: FSMContext):
+async def handle_address(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел адрес: {message.text.strip()}.")
-    await state.update_data({"address": message.text.strip()})
-    await message.answer("📞 4/4 Укажите <b>номер телефона</b> ☎️:")
+    await state.update_data({"address_detail": message.text.strip()})
+    await message.answer(loc.phone_request)
     await state.set_state(OrderStates.waiting_for_phone)
 
-
 @form_router.message(StateFilter(OrderStates.waiting_for_phone))
-async def handle_phone(message: types.Message, state: FSMContext):
+async def handle_phone(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел номер телефона: {message.text.strip()}.")
     await state.update_data({"phone": message.text.strip()})
 
     data = await state.get_data()
-    user_id = message.from_user.id
+    user_uuid = uuid.uuid4()
+    
     fio = data.get("fio")
-    address = data.get("address")
+    address = f"{data.get('region')}, {data.get('city')}, {data.get('address_detail')}"
     phone = data.get("phone")
     check_link = data.get("check_link")
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     username = message.from_user.username
 
-    values = [[str(user_id), fio, address, phone, check_link, current_time, username]]
-    # save_data_to_file(values)
-    logger.info(f"Данные пользователя {user_id} собраны: {values}")
-    process_append_message = await message.answer("✍️ <i>Записываем ваши данные...</i>")
+    values = [[str(user_uuid), fio, address, phone, check_link, current_time, username]]
+    logger.info(f"Данные пользователя {user_uuid} собраны: {values}")
+    process_append_message = await message.answer(loc.processing_data_message)
     await append_to_sheet(values, DEFAULT_SHEET_RANGE)
     await process_append_message.delete()
 
-    await message.answer(
-        "🎉 <b>Все готово!</b>\n\n"
-        "Ваши данные успешно сохранены:\n"
-        f"📄 <b>Чек:</b> {check_link}  \n"
-        f"👤 <b>ФИО:</b> {fio}\n"
-        f"🏠 <b>Адрес:</b> {address}\n"
-        f"📞 <b>Телефон:</b> {phone}\n\n"
-        "🚀 <i>Мы свяжемся с вами в ближайшее время!</i> 😊\n\n"
-        f"🎟 <b>Ваш уникальный номер для розыгрыша:</b> <code>{user_id}</code>\n\n",
-
-        # reply_markup=edit_keyboard()
+    success_msg = loc.success_message.format(
+        check_link=check_link,
+        fio=fio,
+        address=address,
+        phone=phone,
+        user_id=user_uuid
     )
+    await message.answer(success_msg)
 
     await state.clear()
-    logger.info(f"Состояние пользователя {user_id} очищено.")
+    logger.info(f"Состояние пользователя {username} очищено.")

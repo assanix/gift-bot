@@ -1,18 +1,28 @@
-import logging
-from aiogram import types, Dispatcher, Router
-from aiogram.filters import Command
+# handlers/start.py
 
-logger = logging.getLogger(__name__)
+from aiogram import types, Router
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from states.order_states import OrderStates
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from utils.localization import Localization, LOCALIZATIONS
+
 start_router = Router()
 
+def language_selection_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🇰🇿 Қазақша", callback_data="language_kk"),
+            InlineKeyboardButton(text="🇷🇺 Русский", callback_data="language_ru"),
+            InlineKeyboardButton(text="🇬🇧 English", callback_data="language_en")
+        ]
+    ])
 
-async def cmd_start(message: types.Message):
-    logger.info(f"Пользователь {message.from_user.id} запустил команду /start.")
+@start_router.message(Command("start"))
+async def cmd_start(message: types.Message, state: FSMContext, loc: Localization):
     await message.answer(
-        "👋 <b>Добро пожаловать!</b>\n\n"
-        "📤 Пожалуйста, отправьте <b>чек</b> в виде <i>фото</i> или <i>документа</i>, "
-        "и мы начнем оформление.\n\n"
+        loc.language_selection_prompt,
+        reply_markup=language_selection_keyboard()
     )
-
-
-start_router.message.register(cmd_start, Command("start"))
+    # Устанавливаем состояние ожидания выбора языка
+    await state.set_state(OrderStates.waiting_for_language)

@@ -31,7 +31,7 @@ async def upload_file_to_s3(file_path: str) -> str:
 
         url = f"https://{AWS_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{file_key}"
         logger.info(f"Файл загружен: {url}")
-        return shorten_url(url)
+        return url
 
     except Exception as e:
         logger.error(f"Ошибка загрузки файла в S3: {e}")
