@@ -5,3 +5,4 @@ credentials.json
 credentials_base64.txt
 .idea
 __pycache__
+/venv
