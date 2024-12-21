@@ -129,8 +129,9 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
         logger.info(f"Данные пользователя {user_uuid} сохранены в базу данных.")
     except Exception as e:
         logger.error(f"Ошибка сохранения данных в базу: {e}")
-        await message.answer(loc.db_save_error)
         return
+    
+    # Запись в Google Sheets
     await append_to_sheet([[
         str(user_uuid), fio, address, phone, check_link, current_time, username
     ]], DEFAULT_SHEET_RANGE)
