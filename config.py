@@ -23,3 +23,6 @@ AWS_SECRET_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.getenv('AWS_REGION')
 
 BITLY_API_KEY = os.getenv('BITLY_API_KEY')
+
+MONGO_DB_URL = os.getenv('MONGODB_URL')
+DATABASE_NAME = os.getenv('DATABASE_NAME')
