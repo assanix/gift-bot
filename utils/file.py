@@ -10,7 +10,6 @@ from config import BITLY_API_KEY
 logger = logging.getLogger(__name__)
 DATA_FILE = "user_data.json"
 
-
 def save_data_to_file(data):
     with open(DATA_FILE, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=4, ensure_ascii=False)

@@ -26,3 +26,5 @@ BITLY_API_KEY = os.getenv('BITLY_API_KEY')
 
 MONGO_DB_URL = os.getenv('MONGODB_URL')
 DATABASE_NAME = os.getenv('DATABASE_NAME')
+
+USERS = os.getenv('USERS')

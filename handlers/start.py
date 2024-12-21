@@ -26,3 +26,4 @@ async def cmd_start(message: types.Message, state: FSMContext, loc: Localization
     )
     # Устанавливаем состояние ожидания выбора языка
     await state.set_state(OrderStates.waiting_for_language)
+

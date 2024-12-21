@@ -25,7 +25,6 @@ async def cmd_language(message: types.Message, state: FSMContext, loc: Localizat
         loc.language_selection_prompt,
         reply_markup=language_selection_keyboard()
     )
-    # Устанавливаем состояние ожидания выбора языка
     await state.set_state(OrderStates.waiting_for_language)
 
 @language_router.callback_query(F.data.startswith("language_"))
@@ -35,6 +34,6 @@ async def process_language_selection(callback: CallbackQuery, state: FSMContext,
     confirmation_message = loc.language_set_confirmation.format(language=language.upper())
     await callback.message.edit_text(confirmation_message)
     await callback.answer(f"Language set to: {language.upper()}")
-    # Переводим пользователя в начальное состояние или другое по необходимости
+
     await state.set_state(OrderStates.waiting_for_start)
     await callback.message.answer(LOCALIZATIONS[language].start_message)

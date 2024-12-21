@@ -16,7 +16,6 @@ def get_s3_client():
         region_name=AWS_REGION
     )
 
-
 async def upload_file_to_s3(file_path: str) -> str:
     s3_client = get_s3_client()
     file_key = f"checks/{os.path.basename(file_path)}"

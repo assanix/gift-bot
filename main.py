@@ -13,6 +13,7 @@ from handlers.language import language_router
 from middlewares.localization import LocalizationMiddleware
 from utils.logging_config import setup_logging
 from database import connect_to_mongo, close_mongo_connection
+from handlers.excel import excel_router
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ async def main():
     dp.include_router(form_router)
     dp.include_router(callbacks_router)
     dp.include_router(language_router)
+    dp.include_router(excel_router)
 
     logger.info("Starting polling ...")
     try:

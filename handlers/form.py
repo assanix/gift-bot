@@ -124,6 +124,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
         "timestamp": current_time,
         "username": username
     }
+    
     try:
         await db.orders.insert_one(values)
         logger.info(f"Данные пользователя {user_uuid} сохранены в базу данных.")
