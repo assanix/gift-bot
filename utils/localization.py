@@ -20,6 +20,11 @@ class Localization:
     processing_data_message: str
     language_selection_prompt: str
     language_set_confirmation: str
+    contract_sent_message: str
+    file_send_error: str
+    file_not_found: str
+    database_save_error: str
+    google_sheets_error: str
 
 LOCALIZATIONS: Dict[str, Localization] = {
     'kk': Localization(
@@ -50,7 +55,12 @@ LOCALIZATIONS: Dict[str, Localization] = {
         cloud_upload_error="❗ Бұлтты жүйеге файлды жүктеу кезінде қате орын алды. Қайта көріңіз.",
         processing_data_message="✍️ <i>Деректеріңізді жазып жатырмыз...</i>",
         language_selection_prompt="Өтінемін, қалаған тіліңізді таңдаңыз:",
-        language_set_confirmation="Тіл таңдалды: {language}"
+        language_set_confirmation="Тіл таңдалды: {language}",
+        contract_sent_message="📄 <b>Договор</b> жіберілді. Өтінемін, оны қарап шығыңыз.",
+        file_send_error="❗ Договорды жіберу кезінде қате орын алды.",
+        file_not_found="❗ Серверде договор файлы табылмады.",
+        database_save_error="❗ Деректеріңізді сақтау кезінде қате орын алды. Қайта көріңіз.",
+        google_sheets_error="❗ Google Sheets-ке деректерді жазу кезінде қате орын алды.",
     ),
     'ru': Localization(
         start_message=(
@@ -80,7 +90,12 @@ LOCALIZATIONS: Dict[str, Localization] = {
         cloud_upload_error="❗ Произошла ошибка при загрузке файла в облако. Попробуйте еще раз.",
         processing_data_message="✍️ <i>Записываем ваши данные...</i>",
         language_selection_prompt="Пожалуйста, выберите ваш предпочитаемый язык:",
-        language_set_confirmation="Язык установлен: {language}"
+        language_set_confirmation="Язык установлен: {language}",
+        contract_sent_message="📄 <b>Договор</b> отправлен. Пожалуйста, ознакомьтесь с ним.",
+        file_send_error="❗ Произошла ошибка при отправке договора.",
+        file_not_found="❗ Файл договора не найден на сервере.",
+        database_save_error="❗ Произошла ошибка при сохранении ваших данных. Пожалуйста, попробуйте позже.",
+        google_sheets_error="❗ Произошла ошибка при записи данных в Google Sheets.",
     ),
     'en': Localization(
         start_message=(
@@ -110,6 +125,11 @@ LOCALIZATIONS: Dict[str, Localization] = {
         cloud_upload_error="❗ An error occurred while uploading the file to the cloud. Please try again.",
         processing_data_message="✍️ <i>Saving your data...</i>",
         language_selection_prompt="Please select your preferred language:",
-        language_set_confirmation="Language set to: {language}"
+        language_set_confirmation="Language set to: {language}",
+        contract_sent_message="📄 <b>Contract</b> has been sent. Please review it.",
+        file_send_error="❗ An error occurred while sending the contract.",
+        file_not_found="❗ Contract file not found on the server.",
+        database_save_error="❗ An error occurred while saving your data. Please try again later.",
+        google_sheets_error="❗ An error occurred while writing data to Google Sheets.",
     )
 }

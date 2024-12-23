@@ -1,21 +1,19 @@
-# handlers/form.py
-
 import logging
 import os
-from aiogram import types, Router, F
-from aiogram.filters import StateFilter
-from aiogram.fsm.context import FSMContext
+import uuid
 from datetime import datetime
+
+from aiogram import Router, types, F
+from aiogram.filters import Command, StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.types import FSInputFile  # Changed from InputFile to FSInputFile
 
 from config import DEFAULT_SHEET_RANGE
 from services.aws_s3 import upload_file_to_s3
 from services.google_sheets import append_to_sheet
 from states.order_states import OrderStates
 from utils.file import get_extension
-
 from utils.localization import LOCALIZATIONS, Localization
-
-import uuid
 
 from database import db
 
@@ -26,7 +24,7 @@ form_router = Router()
 async def handle_check(message: types.Message, state: FSMContext, loc: Localization):
     user_data = await state.get_data()
     # loc уже передаётся через middleware
-
+     
     logger.info(f"Пользователь {message.from_user.id} загрузил чек.")
     processing_message = await message.answer(loc.processing_file_message)
 
@@ -113,7 +111,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
     phone = data.get("phone")
     check_link = data.get("check_link")
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    username = message.from_user.username
+    username = message.from_user.username or "N/A"
 
     values = {
         "user_id": str(user_uuid),
@@ -130,18 +128,34 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
         logger.info(f"Данные пользователя {user_uuid} сохранены в базу данных.")
     except Exception as e:
         logger.error(f"Ошибка сохранения данных в базу: {e}")
+        await message.answer(loc.database_save_error)
         return
-    
-    # Запись в Google Sheets
-    await append_to_sheet([[
-        str(user_uuid), fio, address, phone, check_link, current_time, username
-    ]], DEFAULT_SHEET_RANGE)
-    
-    logger.info(f"Данные пользователя {user_uuid} собраны: {values}")
+
     process_append_message = await message.answer(loc.processing_data_message)
-    await append_to_sheet(values, DEFAULT_SHEET_RANGE)
+    
+    try:
+        await append_to_sheet(values, DEFAULT_SHEET_RANGE)
+    except Exception as e:
+        logger.error(f"Ошибка при добавлении данных в Google Sheets: {e}")
+        await message.answer(loc.google_sheets_error)
+
     await process_append_message.delete()
 
+    contract_path = os.path.abspath(os.path.join("contracts", "Договор оферты-Қауашық.docx"))  
+
+    if os.path.exists(contract_path):
+        try:
+            # Changed to FSInputFile instead of InputFile
+            contract_file = FSInputFile(contract_path, filename="Договор оферты-Қауашық.docx")
+            await message.answer_document(contract_file, caption=loc.contract_sent_message)
+            logger.info(f"Файл {contract_path} успешно отправлен пользователю {message.from_user.id}.")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке файла: {e}")
+            await message.answer(loc.file_send_error)
+    else:
+        logger.error(f"Файл {contract_path} не найден.")
+        await message.answer(loc.file_not_found)
+            
     success_msg = loc.success_message.format(
         check_link=check_link,
         fio=fio,
@@ -149,7 +163,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
         phone=phone,
         user_id=user_uuid
     )
-    
+
     await message.answer(success_msg)
 
     await state.clear()
