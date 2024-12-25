@@ -29,3 +29,5 @@ MONGO_DB_URL = os.getenv('MONGODB_URL')
 DATABASE_NAME = os.getenv('DATABASE_NAME')
 
 USERS = os.getenv('USERS')
+
+ADMIN_ID = os.getenv('ADMIN_ID')

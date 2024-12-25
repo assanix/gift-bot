@@ -11,6 +11,7 @@ from handlers.form import form_router
 from handlers.start import start_router
 from handlers.language import language_router
 from middlewares.localization import LocalizationMiddleware
+from services.aws_s3 import retry_failed_uploads
 from utils.logging_config import setup_logging
 from database import connect_to_mongo, close_mongo_connection
 from handlers.excel import excel_router
@@ -26,12 +27,11 @@ async def main():
 
     bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=MemoryStorage())
-
+    await retry_failed_uploads(bot)
 
     dp.message.middleware(LocalizationMiddleware())
     dp.callback_query.middleware(LocalizationMiddleware())
 
- 
     dp.include_router(start_router)
     dp.include_router(form_router)
     dp.include_router(callbacks_router)
