@@ -24,6 +24,8 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
     user_data = await state.get_data()
     logger.info(f"Пользователь {message.from_user.id} загрузил чек.")
     processing_message = await message.answer(loc.processing_file_message)
+    bot = message.bot
+    chat_id = message.chat.id
 
     if message.photo:
         file_id = message.photo[-1].file_id
@@ -50,7 +52,7 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
     logger.info(f"Файл сохранен локально как {local_path}.")
 
     try:
-        s3_url = await upload_file_to_s3(local_path)
+        s3_url = await upload_file_to_s3(local_path, chat_id, bot)
         await state.update_data({"check_link": s3_url})
         logger.info(f"Файл успешно загружен в S3: {s3_url}")
     except Exception as e:
