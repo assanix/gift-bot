@@ -25,6 +25,7 @@ class Localization:
     file_not_found: str
     database_save_error: str
     google_sheets_error: str
+    count_of_orders: str
 
 LOCALIZATIONS: Dict[str, Localization] = {
     'kk': Localization(
@@ -36,11 +37,11 @@ LOCALIZATIONS: Dict[str, Localization] = {
         processing_file_message="📥 <i>Файлыңыз өңделуде...</i>",
         check_saved_message="✅ Чек сақталды!",
         check_request="📤 Жаңа <b>чекті</b> фото немесе құжат түрінде жіберіңіз:",
-        fio_request="2/4 Өтінемін, <b>Аты-жөніңізді</b> енгізіңіз 👤:",
-        region_request="🏠 3/4 Өтінемін, <b>жеткізу облысын</b> енгізіңіз 📍:",
-        city_request="🏠 3/4 Өтінемін, <b>жеткізу қаласын</b> енгізіңіз 📍:",
-        address_request="🏠 3/4 Өтінемін, <b>жеткізу мекенжайын</b> енгізіңіз 📍:",
-        phone_request="📞 4/4 <b>Телефон нөмірін</b> көрсетіңіз ☎️:",
+        fio_request="3/5 Өтінемін, <b>Аты-жөніңізді</b> енгізіңіз 👤:",
+        region_request="🏠 4/5 Өтінемін, <b>жеткізу облысын</b> енгізіңіз 📍:",
+        city_request="🏠 4/5 Өтінемін, <b>жеткізу қаласын</b> енгізіңіз 📍:",
+        address_request="🏠 4/5 Өтінемін, <b>жеткізу мекенжайын</b> енгізіңіз 📍:",
+        phone_request="📞 5/5 <b>Телефон нөмірін</b> көрсетіңіз ☎️:",
         success_message=(
             "🎉 <b>Барлығы дайын!</b>\n\n"
             "Сіздің деректеріңіз сәтті сақталды:\n"
@@ -61,6 +62,7 @@ LOCALIZATIONS: Dict[str, Localization] = {
         file_not_found="❗ Серверде договор файлы табылмады.",
         database_save_error="❗ Деректеріңізді сақтау кезінде қате орын алды. Қайта көріңіз.",
         google_sheets_error="❗ Google Sheets-ке деректерді жазу кезінде қате орын алды.",
+        count_of_orders=" 🛍️ Қанша тауар сатып алғыңыз келеді?"
     ),
     'ru': Localization(
         start_message=(
@@ -71,11 +73,11 @@ LOCALIZATIONS: Dict[str, Localization] = {
         processing_file_message="📥 <i>Обработка вашего файла...</i>",
         check_saved_message="✅ Чек сохранен!",
         check_request="📤 Отправьте новый <b>чек</b> в виде фото или документа:",
-        fio_request="2/4 Введите, пожалуйста, <b>ваше ФИО</b> 👤:",
-        region_request="🏠 3/4 Введите, пожалуйста, <b>область доставки</b> 📍:",
-        city_request="🏠 3/4 Введите, пожалуйста, <b>город доставки</b> 📍:",
-        address_request="🏠 3/4 Введите, пожалуйста, <b>адрес доставки</b> 📍:",
-        phone_request="📞 4/4 Укажите <b>номер телефона</b> ☎️:",
+        fio_request="3/5 Введите, пожалуйста, <b>ваше ФИО</b> 👤:",
+        region_request="🏠 4/5 Введите, пожалуйста, <b>область доставки</b> 📍:",
+        city_request="🏠 4/5 Введите, пожалуйста, <b>город доставки</b> 📍:",
+        address_request="🏠 4/5 Введите, пожалуйста, <b>адрес доставки</b> 📍:",
+        phone_request="📞 5/5 Укажите <b>номер телефона</b> ☎️:",
         success_message=(
             "🎉 <b>Все готово!</b>\n\n"
             "Ваши данные успешно сохранены:\n"
@@ -96,6 +98,7 @@ LOCALIZATIONS: Dict[str, Localization] = {
         file_not_found="❗ Файл договора не найден на сервере.",
         database_save_error="❗ Произошла ошибка при сохранении ваших данных. Пожалуйста, попробуйте позже.",
         google_sheets_error="❗ Произошла ошибка при записи данных в Google Sheets.",
+        count_of_orders= "2/5 🛍️ Сколько товаров вы хотите купить?"
     ),
     'en': Localization(
         start_message=(
@@ -106,11 +109,11 @@ LOCALIZATIONS: Dict[str, Localization] = {
         processing_file_message="📥 <i>Processing your file...</i>",
         check_saved_message="✅ Check saved!",
         check_request="📤 Send a new <b>receipt</b> as a photo or document:",
-        fio_request="2/4 Please enter your <b>Full Name</b> 👤:",
-        region_request="🏠 3/4 Please enter the <b>delivery region</b> 📍:",
-        city_request="🏠 3/4 Please enter the <b>delivery city</b> 📍:",
-        address_request="🏠 3/4 Please enter the <b>delivery address</b> 📍:",
-        phone_request="📞 4/4 Provide your <b>phone number</b> ☎️:",
+        fio_request="3/5 Please enter your <b>Full Name</b> 👤:",
+        region_request="🏠 4/5 Please enter the <b>delivery region</b> 📍:",
+        city_request="🏠 4/5 Please enter the <b>delivery city</b> 📍:",
+        address_request="🏠 4/5 Please enter the <b>delivery address</b> 📍:",
+        phone_request="📞 5/5 Provide your <b>phone number</b> ☎️:",
         success_message=(
             "🎉 <b>All Done!</b>\n\n"
             "Your data has been successfully saved:\n"
@@ -131,5 +134,6 @@ LOCALIZATIONS: Dict[str, Localization] = {
         file_not_found="❗ Contract file not found on the server.",
         database_save_error="❗ An error occurred while saving your data. Please try again later.",
         google_sheets_error="❗ An error occurred while writing data to Google Sheets.",
+        count_of_orders="2/5 🛍️ How many items would you like to purchase?"
     )
 }
