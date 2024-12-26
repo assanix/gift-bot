@@ -7,21 +7,21 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile
 
-from config import DEFAULT_SHEET_RANGE
 from services.aws_s3 import upload_file_to_s3
-from services.google_sheets import append_to_sheet
 from states.order_states import OrderStates
 from utils.file import get_extension
 from utils.localization import Localization
 
 from database import db
 
+import re
+
 logger = logging.getLogger(__name__)
 form_router = Router()
 
+
 @form_router.message(F.content_type.in_({"photo", "document"}))
 async def handle_check(message: types.Message, state: FSMContext, loc: Localization):
-    user_data = await state.get_data()
     logger.info(f"Пользователь {message.from_user.id} загрузил чек.")
     processing_message = await message.answer(loc.processing_file_message)
     bot = message.bot
@@ -35,7 +35,7 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         await message.answer(loc.file_error)
         return
 
-    file_info = await message.bot.get_file(file_id)
+    file_info = await bot.get_file(file_id)
     file_path = file_info.file_path
     file_unique_id = file_info.file_unique_id
     extension = get_extension(file_path)
@@ -44,8 +44,7 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
     local_path = os.path.join("temp", local_file_name)
     os.makedirs("temp", exist_ok=True)
 
-    downloaded_file = await message.bot.download_file(file_info.file_path)
-
+    downloaded_file = await bot.download_file(file_path)
     with open(local_path, "wb") as f:
         f.write(downloaded_file.read())
 
@@ -59,13 +58,12 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         await message.answer(loc.cloud_upload_error)
         logger.error(f"Ошибка загрузки файла: {e}")
         return
-
-    os.remove(local_path)
+    finally:
+        os.remove(local_path)
 
     await processing_message.edit_text(loc.check_saved_message)
     await message.answer(loc.count_of_orders)
     await state.set_state(OrderStates.waiting_for_count_of_orders)
-
 
 
 @form_router.message(StateFilter(OrderStates.waiting_for_count_of_orders))
@@ -74,13 +72,15 @@ async def handle_count_of_orders(message: types.Message, state: FSMContext, loc:
     await state.update_data({"count": message.text.strip()})
     await message.answer(loc.fio_request)
     await state.set_state(OrderStates.waiting_for_fio)
-    
+
+
 @form_router.message(StateFilter(OrderStates.waiting_for_fio))
 async def handle_fio(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел ФИО: {message.text.strip()}.")
     await state.update_data({"fio": message.text.strip()})
     await message.answer(loc.region_request)
     await state.set_state(OrderStates.waiting_for_region)
+
 
 @form_router.message(StateFilter(OrderStates.waiting_for_region))
 async def handle_region(message: types.Message, state: FSMContext, loc: Localization):
@@ -89,12 +89,14 @@ async def handle_region(message: types.Message, state: FSMContext, loc: Localiza
     await message.answer(loc.city_request)
     await state.set_state(OrderStates.waiting_for_city)
 
+
 @form_router.message(StateFilter(OrderStates.waiting_for_city))
 async def handle_city(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел город: {message.text.strip()}.")
     await state.update_data({"city": message.text.strip()})
     await message.answer(loc.address_request)
     await state.set_state(OrderStates.waiting_for_address)
+
 
 @form_router.message(StateFilter(OrderStates.waiting_for_address))
 async def handle_address(message: types.Message, state: FSMContext, loc: Localization):
@@ -104,55 +106,51 @@ async def handle_address(message: types.Message, state: FSMContext, loc: Localiz
     await state.set_state(OrderStates.waiting_for_phone)
 
 
-
 @form_router.message(StateFilter(OrderStates.waiting_for_phone))
 async def handle_phone(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел номер телефона: {message.text.strip()}.")
     await state.update_data({"phone": message.text.strip()})
 
     data = await state.get_data()
-    count = await db.orders.count_documents({})
-    user_id = str(count + 1).zfill(7)
-
     fio = data.get("fio")
     address = f"{data.get('region')}, {data.get('city')}, {data.get('address_detail')}"
     phone = data.get("phone")
     check_link = data.get("check_link")
-    count_of_orders = data.get("count")
+    raw_count_str = data.get("count", "")
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     username = message.from_user.username or "N/A"
 
-    values = {
-        "user_id": user_id,
-        "fio": fio,
-        "address": address,
-        "phone": phone,
-        "check_link": check_link,
-        "timestamp": current_time,
-        "count_of_orders": count_of_orders,
-        "username": username
-    }
+    numbers_found = re.findall(r"\d+", raw_count_str)
+    count_of_orders = int(numbers_found[0]) if numbers_found else 1
 
-    try:
-        await db.orders.insert_one(values)
-        logger.info(f"Данные пользователя {user_id} сохранены в базу данных.")
-    except Exception as e:
-        logger.error(f"Ошибка сохранения данных в базу: {e}")
-        await message.answer(loc.database_save_error)
-        return
+    users_id_arr = []
+    
+    for _ in range(count_of_orders):
+        order_count = await db.orders.count_documents({})
+        user_id = str(order_count + 1).zfill(7)
+        users_id_arr.append(user_id)
+        
+        values = {
+            "user_id": user_id,
+            "fio": fio,
+            "address": address,
+            "phone": phone,
+            "check_link": check_link,
+            "timestamp": current_time,
+            "count_of_orders": count_of_orders,
+            "username": username
+        }
 
-    process_append_message = await message.answer(loc.processing_data_message)
-
-    try:
-        await append_to_sheet(values, DEFAULT_SHEET_RANGE)
-    except Exception as e:
-        logger.error(f"Ошибка при добавлении данных в Google Sheets: {e}")
-        await message.answer(loc.google_sheets_error)
-
-    await process_append_message.delete()
+        logger.info(f"Сохраняем данные пользователя {user_id} в базу.")
+        try:
+            await db.orders.insert_one(values)
+            logger.info(f"Данные пользователя {user_id} сохранены в базу данных.")
+        except Exception as e:
+            logger.error(f"Ошибка сохранения данных в базу: {e}")
+            await message.answer(loc.database_save_error)
+            return
 
     contract_path = os.path.abspath(os.path.join("contracts", "Договор оферты-Қауашық.docx"))
-
     if os.path.exists(contract_path):
         try:
             contract_file = FSInputFile(contract_path, filename="Договор оферты-Қауашық.docx")
@@ -170,10 +168,8 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
         fio=fio,
         address=address,
         phone=phone,
-        user_id=user_id
+        user_id= ", ".join(users_id_arr)
     )
-
     await message.answer(success_msg)
-
     await state.clear()
     logger.info(f"Состояние пользователя {username} очищено.")
