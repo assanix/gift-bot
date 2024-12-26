@@ -53,9 +53,3 @@ async def notify_admin_once(bot, message, resolved=False):
             )
     except Exception as e:
         logger.error(f"Ошибка уведомления админа: {e}")
-
-
-
-
-
-

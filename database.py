@@ -13,6 +13,7 @@ async def connect_to_mongo():
     db.db = db.client[DATABASE_NAME]
     db.orders = db.db.orders 
 
+
 async def close_mongo_connection():
     if db.client:
         db.client.close()

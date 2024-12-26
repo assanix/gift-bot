@@ -30,7 +30,7 @@ async def cmd_get_excel(message: types.Message, state: FSMContext, loc: Localiza
         ws.title = "Orders"
         
         # Add headers
-        headers = ["user_id", "fio", "address", "phone", "check_link", "timestamp", "username"]
+        headers = ["user_id", "fio", "address", "phone", "orders_count", "check_link", "timestamp", "username"]
         ws.append(headers)
         
         # Fill data
@@ -40,6 +40,7 @@ async def cmd_get_excel(message: types.Message, state: FSMContext, loc: Localiza
                 item.get("fio", ""),
                 item.get("address", ""),
                 item.get("phone", ""),
+                item.get("count_of_orders", ""),
                 item.get("check_link", ""),
                 item.get("timestamp", ""),
                 item.get("username", "")
