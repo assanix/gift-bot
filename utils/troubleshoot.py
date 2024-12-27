@@ -1,10 +1,14 @@
 import logging
 
-from config import ADMIN_ID
+from aiogram.exceptions import TelegramAPIError
+
+from config import ADMIN_IDS
 from database import db
 
 ERROR_STORAGE_PATH = "temp/error_files.json"
 ERROR_STATUS_PATH = "temp/error_status.json"
+
+ADMIN_IDS = [int(chat_id) for chat_id in ADMIN_IDS.split(",")]
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +29,6 @@ async def save_failed_upload(file_path, chat_id):
 
 
 async def notify_admin_once(bot, message, resolved=False):
-    admin_id = ADMIN_ID
-
     try:
         error_status = await db.db.error_status.find_one({"type": "upload_status"})
 
@@ -35,8 +37,12 @@ async def notify_admin_once(bot, message, resolved=False):
             await db.db.error_status.insert_one(error_status)
 
         if not error_status["error_notified"] and not resolved:
-            await bot.send_message(admin_id, f"<b>Ошибка загрузки в S3</b>: \n"
-                                             f"{message}")
+            for admin_id in ADMIN_IDS:
+                try:
+                    await bot.send_message(admin_id, f"<b>Ошибка загрузки в S3</b>: \n{message}")
+                except TelegramAPIError as e:
+                    logger.error(f"Ошибка отправки уведомления администратору {admin_id}: {e}")
+
             await db.db.error_status.update_one(
                 {"type": "upload_status"},
                 {"$set": {"error_notified": True, "resolved_notified": False}}
@@ -46,7 +52,11 @@ async def notify_admin_once(bot, message, resolved=False):
                 {"$set": {"error_notified": True}}
             )
         elif not error_status["resolved_notified"] and resolved:
-            await bot.send_message(admin_id, "<b>Все файлы успешно загружены в S3.</b> Проблема решена.")
+            for admin_id in ADMIN_IDS:
+                try:
+                    await bot.send_message(admin_id, "<b>Все файлы успешно загружены в S3.</b> Проблема решена.")
+                except TelegramAPIError as e:
+                    logger.error(f"Ошибка отправки уведомления администратору {admin_id}: {e}")
             await db.db.error_status.update_one(
                 {"type": "upload_status"},
                 {"$set": {"error_notified": False, "resolved_notified": True}}
