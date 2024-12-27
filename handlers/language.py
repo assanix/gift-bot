@@ -11,6 +11,7 @@ from states.order_states import OrderStates
 logger = logging.getLogger(__name__)
 language_router = Router()
 
+
 def language_selection_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [
