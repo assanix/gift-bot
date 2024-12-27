@@ -55,37 +55,51 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
     if not validation_result["valid"]:
         await message.answer(f"❌ Чек недействителен: {validation_result['error']}")
         os.remove(local_path)
-        returnе
+        return
 
     amount_line = validation_result["amount_line"]
+    qr_code_line = validation_result["qr_code_line"]
     amount_cleaned = amount_line.replace("₸", "").replace(" ", "").strip()
+    
+    existing_qr = await db.orders.find_one({"qr_code_line": qr_code_line})
+    if existing_qr:
+        await message.answer("❌ Чек с таким QR-кодом уже был отправлен!")
+        os.remove(local_path)
+        return
+
     try:
         amount = int(amount_cleaned)
-        await message.answer(f"✅ Чек успешно проверен. Сумма: {amount} ₸. Количество товаров: {amount // 7900}")
+        count_of_orders = amount // 7900
+        if count_of_orders == 0:
+            await message.answer("❌ Минимальный заказ от 7900 тг!")
+            os.remove(local_path)
+            return
+        await message.answer(
+            f"✅ Чек успешно проверен. Сумма: {amount} ₸. Количество товаров: {count_of_orders}"
+        )
     except ValueError:
         await message.answer("❌ Не удалось преобразовать сумму в число.")
-        logger.error(f"Ошибка преобразования суммы: {amount}")
+        logger.error(f"Ошибка преобразования суммы: {amount_cleaned}")
+        os.remove(local_path)
+        return
 
     try:
         s3_url = await upload_file_to_s3(local_path, chat_id, bot)
-        await state.update_data({"check_link": s3_url})
+        await state.update_data({
+            "check_link": s3_url,
+            "count_of_orders": count_of_orders,
+            "qr_code_line": qr_code_line  
+        })
         logger.info(f"Файл успешно загружен в S3: {s3_url}")
     except Exception as e:
         await message.answer(loc.cloud_upload_error)
         logger.error(f"Ошибка загрузки файла: {e}")
+        os.remove(local_path)
         return
     finally:
         os.remove(local_path)
 
     await processing_message.edit_text(loc.check_saved_message)
-    await message.answer(f"{loc.count_of_orders}\n\n{loc.example_count_of_orders}")
-    await state.set_state(OrderStates.waiting_for_count_of_orders)
-
-
-@form_router.message(StateFilter(OrderStates.waiting_for_count_of_orders))
-async def handle_count_of_orders(message: types.Message, state: FSMContext, loc: Localization):
-    logger.info(f"Пользователь {message.from_user.id} ввел количество товаров: {message.text.strip()}.")
-    await state.update_data({"count": message.text.strip()})
     await message.answer(f"{loc.fio_request}\n\n{loc.example_fio}")
     await state.set_state(OrderStates.waiting_for_fio)
 
@@ -132,14 +146,13 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
     address = f"{data.get('region')}, {data.get('city')}, {data.get('address_detail')}"
     phone = data.get("phone")
     check_link = data.get("check_link")
-    raw_count_str = data.get("count", "")
+    qr_code_line = data.get("qr_code_line")  
     current_time = (datetime.now() + timedelta(hours=5)).strftime("%Y-%m-%d %H:%M:%S")
     username = message.from_user.username or "N/A"
     language = data.get("language")
-
-    numbers_found = re.findall(r"\d+", raw_count_str)
-    count_of_orders = int(numbers_found[0]) if numbers_found else 1
     chat_id = message.chat.id
+    
+    count_of_orders = data.get("count_of_orders", 1)
 
     users_id_arr = []
 
@@ -154,6 +167,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
             "address": address,
             "phone": phone,
             "check_link": check_link,
+            "qr_code_line": qr_code_line,
             "timestamp": current_time,
             "count_of_orders": count_of_orders,
             "username": username,

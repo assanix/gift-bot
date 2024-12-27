@@ -24,15 +24,27 @@ async def validate_receipt(file_path: str) -> dict:
     try:
         extracted_text = await extract_text_from_file(file_path)
         logger.info(f"Извлеченный текст: {extracted_text}")
-
-        # Ищем сумму в тексте
         lines = extracted_text.splitlines()
+        res = {}
+        
         for line in lines:
             if "₸" in line:
                 amount_line = line.strip()
                 logger.info(f"Найдена строка с суммой: {amount_line}")
-                return {"valid": True, "amount_line": amount_line}
-
+                res["amount_line"] = amount_line
+            if "QR" in line:
+                print(line)
+                qr_code_line = line.strip()
+                res["qr_code_line"] = qr_code_line
+                logger.info(f"Найден QR-код: {qr_code_line}")
+                
+            if "amount_line" in res and "qr_code_line" in res and res["amount_line"] and res["qr_code_line"]:
+                return {
+                    "valid": True,
+                    "amount_line": res["amount_line"],
+                    "qr_code_line": res["qr_code_line"],
+                }
+                
         return {"valid": False, "error": "Не удалось найти строку с суммой"}
     except Exception as e:
         logger.error(f"Ошибка валидации чека: {e}")
