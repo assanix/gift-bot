@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile
 
 from services.aws_s3 import upload_file_to_s3
+from services.ocr import validate_receipt
 from states.order_states import OrderStates
 from utils.file import get_extension
 from utils.localization import Localization
@@ -49,6 +50,21 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         f.write(downloaded_file.read())
 
     logger.info(f"Файл сохранен локально как {local_path}.")
+
+    validation_result = await validate_receipt(local_path)
+    if not validation_result["valid"]:
+        await message.answer(f"❌ Чек недействителен: {validation_result['error']}")
+        os.remove(local_path)
+        returnе
+
+    amount_line = validation_result["amount_line"]
+    amount_cleaned = amount_line.replace("₸", "").replace(" ", "").strip()
+    try:
+        amount = int(amount_cleaned)
+        await message.answer(f"✅ Чек успешно проверен. Сумма: {amount} ₸. Количество товаров: {amount // 7900}")
+    except ValueError:
+        await message.answer("❌ Не удалось преобразовать сумму в число.")
+        logger.error(f"Ошибка преобразования суммы: {amount}")
 
     try:
         s3_url = await upload_file_to_s3(local_path, chat_id, bot)
