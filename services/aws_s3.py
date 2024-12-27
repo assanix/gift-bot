@@ -5,6 +5,7 @@ import logging
 
 from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, AWS_BUCKET_NAME
 from database import db
+from utils.file import shorten_url
 from utils.troubleshoot import save_failed_upload, notify_admin_once
 
 logger = logging.getLogger(__name__)

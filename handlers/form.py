@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from aiogram import Router, types, F
 from aiogram.filters import StateFilter
@@ -62,7 +62,7 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         os.remove(local_path)
 
     await processing_message.edit_text(loc.check_saved_message)
-    await message.answer(loc.count_of_orders)
+    await message.answer(f"{loc.count_of_orders}\n\n{loc.example_count_of_orders}")
     await state.set_state(OrderStates.waiting_for_count_of_orders)
 
 
@@ -70,7 +70,7 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
 async def handle_count_of_orders(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел количество товаров: {message.text.strip()}.")
     await state.update_data({"count": message.text.strip()})
-    await message.answer(loc.fio_request)
+    await message.answer(f"{loc.fio_request}\n\n{loc.example_fio}")
     await state.set_state(OrderStates.waiting_for_fio)
 
 
@@ -78,7 +78,7 @@ async def handle_count_of_orders(message: types.Message, state: FSMContext, loc:
 async def handle_fio(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел ФИО: {message.text.strip()}.")
     await state.update_data({"fio": message.text.strip()})
-    await message.answer(loc.region_request)
+    await message.answer(f"{loc.region_request}\n\n{loc.example_region}")
     await state.set_state(OrderStates.waiting_for_region)
 
 
@@ -86,7 +86,7 @@ async def handle_fio(message: types.Message, state: FSMContext, loc: Localizatio
 async def handle_region(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел область: {message.text.strip()}.")
     await state.update_data({"region": message.text.strip()})
-    await message.answer(loc.city_request)
+    await message.answer(f"{loc.city_request}\n\n{loc.example_city}")
     await state.set_state(OrderStates.waiting_for_city)
 
 
@@ -94,7 +94,7 @@ async def handle_region(message: types.Message, state: FSMContext, loc: Localiza
 async def handle_city(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел город: {message.text.strip()}.")
     await state.update_data({"city": message.text.strip()})
-    await message.answer(loc.address_request)
+    await message.answer(f"{loc.address_request}\n\n{loc.example_address}")
     await state.set_state(OrderStates.waiting_for_address)
 
 
@@ -102,7 +102,7 @@ async def handle_city(message: types.Message, state: FSMContext, loc: Localizati
 async def handle_address(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел адрес: {message.text.strip()}.")
     await state.update_data({"address_detail": message.text.strip()})
-    await message.answer(loc.phone_request)
+    await message.answer(f"{loc.phone_request}\n\n{loc.example_phone}")
     await state.set_state(OrderStates.waiting_for_phone)
 
 
@@ -117,19 +117,21 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
     phone = data.get("phone")
     check_link = data.get("check_link")
     raw_count_str = data.get("count", "")
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_time = (datetime.now() + timedelta(hours=5)).strftime("%Y-%m-%d %H:%M:%S")
     username = message.from_user.username or "N/A"
+    language = data.get("language")
 
     numbers_found = re.findall(r"\d+", raw_count_str)
     count_of_orders = int(numbers_found[0]) if numbers_found else 1
+    chat_id = message.chat.id
 
     users_id_arr = []
-    
+
     for _ in range(count_of_orders):
         order_count = await db.orders.count_documents({})
         user_id = str(order_count + 1).zfill(7)
         users_id_arr.append(user_id)
-        
+
         values = {
             "user_id": user_id,
             "fio": fio,
@@ -138,7 +140,9 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
             "check_link": check_link,
             "timestamp": current_time,
             "count_of_orders": count_of_orders,
-            "username": username
+            "username": username,
+            "chat_id": chat_id,
+            "language": language,
         }
 
         logger.info(f"Сохраняем данные пользователя {user_id} в базу.")
@@ -168,7 +172,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
         fio=fio,
         address=address,
         phone=phone,
-        user_id= ", ".join(users_id_arr)
+        user_id=", ".join(users_id_arr)
     )
     await message.answer(success_msg)
     await state.clear()
