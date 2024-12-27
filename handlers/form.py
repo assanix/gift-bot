@@ -121,8 +121,13 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
     username = message.from_user.username or "N/A"
 
     numbers_found = re.findall(r"\d+", raw_count_str)
-    count_of_orders = int(numbers_found[0]) if numbers_found else 1
-
+    
+    if numbers_found:
+        numbers_found = min([int(_) for _ in numbers_found])
+        count_of_orders = int(numbers_found) if numbers_found else 1
+    else:
+        count_of_orders = 1
+        
     users_id_arr = []
     
     for _ in range(count_of_orders):
@@ -138,7 +143,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
             "check_link": check_link,
             "timestamp": current_time,
             "count_of_orders": count_of_orders,
-            "username": username
+            "username": username 
         }
 
         logger.info(f"Сохраняем данные пользователя {user_id} в базу.")
