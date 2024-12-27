@@ -53,7 +53,7 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
 
     validation_result = await validate_receipt(local_path)
     if not validation_result["valid"]:
-        await message.answer(f"❌ Чек недействителен: {validation_result['error']}")
+        await message.answer(f"❌ Чек недействителен: попробуйте отправить чек в виде pdf-файла! \nИли попробуйте отправить чек попозже!")
         os.remove(local_path)
         return
 
