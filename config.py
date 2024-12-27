@@ -30,4 +30,6 @@ DATABASE_NAME = os.getenv('DATABASE_NAME')
 
 USERS = os.getenv('USERS')
 
-ADMIN_ID = os.getenv('ADMIN_ID')
+ADMIN_IDS = os.getenv('ADMIN_ID')
+
+WEBHOOK_URL = os.getenv('WEBHOOK_URL')
