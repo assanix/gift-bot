@@ -9,7 +9,7 @@ from utils.localization import Localization
 
 logger = logging.getLogger(__name__)
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = "tesseract"
 
 import cv2
 import numpy as np
