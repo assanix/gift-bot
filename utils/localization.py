@@ -32,6 +32,12 @@ class Localization:
     google_sheets_error: str
     count_of_orders: str
     example_count_of_orders: str
+    error_no_amount_line: str
+    error_no_qr_code: str
+    error_invalid_amount: str
+    error_minimum_amount: str
+    error_check_repeat: str
+    receipt_verified_message: str
 
 LOCALIZATIONS: Dict[str, Localization] = {
     'kk': Localization(
@@ -63,7 +69,7 @@ LOCALIZATIONS: Dict[str, Localization] = {
             "🚀 <i>Жақын арада сізбен хабарласамыз!</i> 😊\n\n"
             "🎟 <b>Ұтысқа қатысу үшін сіздің бірегей нөміріңіз:</b> <code>{user_id}</code>\n\n"
         ),
-        file_error="❗ <b>Қате:</b> Өтінемін, <u>фото</u> немесе <u>чек</u> құжатын жіберіңіз.",
+        file_error="❗ <b>Қате:</b> Өтінемін, <u>чек</u> құжатын pdf форматында жіберіңіз.",
         cloud_upload_error="❗ Бұлтты жүйеге файлды жүктеу кезінде қате орын алды. Қайта көріңіз.",
         processing_data_message="✍️ <i>Деректеріңізді жазып жатырмыз...</i>",
         language_selection_prompt="Өтінемін, қалаған тіліңізді таңдаңыз:",
@@ -74,7 +80,13 @@ LOCALIZATIONS: Dict[str, Localization] = {
         database_save_error="❗ Деректеріңізді сақтау кезінде қате орын алды. Қайта көріңіз.",
         google_sheets_error="❗ Google Sheets-ке деректерді жазу кезінде қате орын алды.",
         count_of_orders=" 🛍️ Қанша тауар сатып алдыңыз?",
-        example_count_of_orders="<i>Мысалы: 3</i>"
+        example_count_of_orders="<i>Мысалы: 3</i>",
+        error_no_amount_line="❌ Соманы анықтайтын жол табылған жоқ. Чекті қайта жіберіңіз.",
+        error_no_qr_code="❌ QR-код табылған жоқ. Чекті қайта жіберіңіз.",
+        error_invalid_amount="❌ Чектегі сома дұрыс емес. Чекті қайта жіберіңіз.",
+        error_minimum_amount="❌ Ең төменгі сома {minimum} ₸ болуы керек.",
+        error_check_repeat="❌ Осындай QR коды бар чек жіберілді!. Басқа чекті жіберіңіз.",
+        receipt_verified_message="✅ Чек сәтті тексерілді. Сома: {amount} ₸. Тауар саны: {count_of_orders}"
     ),
     'ru': Localization(
         start_message=(
@@ -84,7 +96,7 @@ LOCALIZATIONS: Dict[str, Localization] = {
         ),
         processing_file_message="📥 <i>Обработка вашего файла...</i>",
         check_saved_message="✅ Чек сохранен!",
-        check_request="📤 Отправьте новый <b>чек</b> в виде фото или документа:",
+        check_request="📤 Отправьте новый <b>чек</b> в виде pdf документа:",
         fio_request="3/5 Введите, пожалуйста, <b>ваше ФИО</b> 👤:",
         example_fio="<i>Например: Иванов Иван Иванович</i>",
         region_request="🏠 4/5 Введите, пожалуйста, <b>область доставки</b> 📍:",
@@ -105,7 +117,7 @@ LOCALIZATIONS: Dict[str, Localization] = {
             "🚀 <i>Мы свяжемся с вами в ближайшее время!</i> 😊\n\n"
             "🎟 <b>Ваш уникальный номер для розыгрыша:</b> <code>{user_id}</code>\n\n"
         ),
-        file_error="❗ <b>Ошибка:</b> Пожалуйста, отправьте <u>фото</u> или <u>документ</u> с чеком.",
+        file_error="❗ <b>Ошибка:</b> Пожалуйста, отправьте <u>документ</u> с чеком.",
         cloud_upload_error="❗ Произошла ошибка при загрузке файла в облако. Попробуйте еще раз.",
         processing_data_message="✍️ <i>Записываем ваши данные...</i>",
         language_selection_prompt="Пожалуйста, выберите ваш предпочитаемый язык:",
@@ -116,7 +128,13 @@ LOCALIZATIONS: Dict[str, Localization] = {
         database_save_error="❗ Произошла ошибка при сохранении ваших данных. Пожалуйста, попробуйте позже.",
         google_sheets_error="❗ Произошла ошибка при записи данных в Google Sheets.",
         count_of_orders="2/5 🛍️ Сколько товаров вы хотите купить?",
-        example_count_of_orders="<i>Например: 3</i>"
+        example_count_of_orders="<i>Например: 3</i>",
+        error_no_amount_line="❌ Строка с суммой не найдена. Пожалуйста, отправьте чек снова.",
+        error_no_qr_code="❌ QR-код не найден. Пожалуйста, отправьте чек снова.",
+        error_invalid_amount="❌ Сумма в чеке некорректна. Пожалуйста, отправьте чек снова.",
+        error_minimum_amount="❌ Минимальная сумма должна быть {minimum} ₸.",\
+        error_check_repeat="❌ Чек с таким QR кодом уже отправлен!. Пожалуйста, отправьте другой чек.",
+        receipt_verified_message="✅ Чек успешно проверен. Сумма: {amount} ₸. Количество товаров: {count_of_orders}"
     ),
     'en': Localization(
         start_message=(
@@ -126,7 +144,7 @@ LOCALIZATIONS: Dict[str, Localization] = {
         ),
         processing_file_message="📥 <i>Processing your file...</i>",
         check_saved_message="✅ Check saved!",
-        check_request="📤 Send a new <b>receipt</b> as a photo or document:",
+        check_request="📤 Send a new <b>receipt</b> as a document:",
         fio_request="3/5 Please enter your <b>Full Name</b> 👤:",
         example_fio="<i>Example: John Doe</i>",
         region_request="🏠 4/5 Please enter the <b>delivery region</b> 📍:",
@@ -158,6 +176,12 @@ LOCALIZATIONS: Dict[str, Localization] = {
         database_save_error="❗ An error occurred while saving your data. Please try again later.",
         google_sheets_error="❗ An error occurred while writing data to Google Sheets.",
         count_of_orders="2/5 🛍️ How many items would you like to purchase?",
-        example_count_of_orders="<i>Example: 3</i>"
+        example_count_of_orders="<i>Example: 3</i>",
+        error_no_amount_line="❌ The line with the amount could not be found. Please resend the receipt.",
+        error_no_qr_code="❌ QR code not found. Please resend the receipt.",
+        error_invalid_amount="❌ The amount in the receipt is invalid. Please resend the receipt.",
+        error_minimum_amount="❌ The minimum amount must be {minimum} ₸.",
+        error_check_repeat="❌ A check with this QR code has already been sent!. Please send another check.",
+        receipt_verified_message="✅ The receipt has been successfully verified. Amount: {amount} ₸. Number of items: {count_of_orders}"
     )
 }

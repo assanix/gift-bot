@@ -22,7 +22,7 @@ form_router = Router()
 
 
 @form_router.message(F.content_type.in_({"photo", "document"}))
-async def handle_check(message: types.Message, state: FSMContext, loc: Localization):
+async def handle_check(message: types.Message, state: FSMContext, loc: Localization = "ru"):
     logger.info(f"Пользователь {message.from_user.id} загрузил чек.")
     processing_message = await message.answer(loc.processing_file_message)
     bot = message.bot
@@ -51,9 +51,9 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
 
     logger.info(f"Файл сохранен локально как {local_path}.")
 
-    validation_result = await validate_receipt(local_path)
+    validation_result = await validate_receipt(local_path, loc)
     if not validation_result["valid"]:
-        await message.answer(f"❌ Чек недействителен: попробуйте отправить чек в виде pdf-файла! \nИли попробуйте отправить чек попозже!")
+        await message.answer(validation_result['error'])
         os.remove(local_path)
         return
 
@@ -63,7 +63,9 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
     
     existing_qr = await db.orders.find_one({"qr_code_line": qr_code_line})
     if existing_qr:
-        await message.answer("❌ Чек с таким QR-кодом уже был отправлен!")
+        await message.answer(
+            loc.error_check_repeat
+        )
         os.remove(local_path)
         return
 
@@ -71,14 +73,18 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         amount = int(amount_cleaned)
         count_of_orders = amount // 7900
         if count_of_orders == 0:
-            await message.answer("❌ Минимальный заказ от 7900 тг!")
+            await message.answer(
+                loc.error_minimum_amount.format(minimum=7900)
+            )
             os.remove(local_path)
             return
         await message.answer(
-            f"✅ Чек успешно проверен. Сумма: {amount} ₸. Количество товаров: {count_of_orders}"
+            loc.receipt_verified_message.format(amount=amount, count_of_orders=count_of_orders)
         )
     except ValueError:
-        await message.answer("❌ Не удалось преобразовать сумму в число.")
+        await message.answer(
+            loc.error_invalid_amount
+        )
         logger.error(f"Ошибка преобразования суммы: {amount_cleaned}")
         os.remove(local_path)
         return

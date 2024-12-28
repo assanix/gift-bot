@@ -5,9 +5,11 @@ import fitz
 import re
 import os
 
+from utils.localization import Localization
+
 logger = logging.getLogger(__name__)
 
-async def extract_text_from_file(file_path: str) -> str:
+async def extract_text_from_file(file_path: str, loc: Localization) -> str:
     if file_path.endswith(".pdf"):
         pdf_document = fitz.open(file_path)
         text = ""
@@ -16,13 +18,12 @@ async def extract_text_from_file(file_path: str) -> str:
             text += page.get_text()
         return text
     else:
-        image = Image.open(file_path)
-        return pytesseract.image_to_string(image)
+        raise ValueError(loc.file_error)
 
 
-async def validate_receipt(file_path: str) -> dict:
+async def validate_receipt(file_path: str, loc: Localization) -> dict:
     try:
-        extracted_text = await extract_text_from_file(file_path)
+        extracted_text = await extract_text_from_file(file_path, loc)
         logger.info(f"Извлеченный текст: {extracted_text}")
         lines = extracted_text.splitlines()
         res = {}
@@ -37,7 +38,10 @@ async def validate_receipt(file_path: str) -> dict:
                 qr_code_line = line.strip()
                 res["qr_code_line"] = qr_code_line
                 logger.info(f"Найден QR-код: {qr_code_line}")
-                
+
+            # if "amount_line" not in res or not res["amount_line"]:
+            #     raise ValueError(loc.error_no_amount_line)
+
             if "amount_line" in res and "qr_code_line" in res and res["amount_line"] and res["qr_code_line"]:
                 return {
                     "valid": True,
@@ -45,7 +49,7 @@ async def validate_receipt(file_path: str) -> dict:
                     "qr_code_line": res["qr_code_line"],
                 }
                 
-        return {"valid": False, "error": "Не удалось найти строку с суммой"}
+        return {"valid": False, "error": loc.error_no_amount_line}
     except Exception as e:
         logger.error(f"Ошибка валидации чека: {e}")
         return {"valid": False, "error": str(e)}
