@@ -7,11 +7,10 @@ RUN apt-get update  \
 
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN rm -rf /root/.cache/pip
-RUN pip install --no-cache-dir -r requirements.txt
 
+COPY requirements.txt requirements.txt
+
+RUN pip install -r requirements.txt
 
 COPY . .
 
