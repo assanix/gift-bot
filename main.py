@@ -6,6 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
 
 from config import TELEGRAM_TOKEN
+from handlers.broadcast import broadcast_router
 from handlers.callbacks import callbacks_router
 from handlers.form import form_router
 from handlers.logs import log_router
@@ -38,6 +39,7 @@ async def main():
     dp.include_router(language_router)
     dp.include_router(excel_router)
     dp.include_router(log_router)
+    dp.include_router(broadcast_router)
 
     logger.info("Starting polling ...")
     try:

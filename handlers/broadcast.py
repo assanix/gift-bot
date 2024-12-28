@@ -6,7 +6,7 @@ from database import db
 from config import ADMIN_IDS
 import logging
 
-router = Router()
+broadcast_router = Router()
 logger = logging.getLogger(__name__)
 
 BROADCAST_MESSAGE = (
@@ -28,17 +28,17 @@ async def broadcast_message(bot, text):
 
         try:
             await bot.send_message(chat_id, text)
-            logging.info(f"Сообщение отправлено пользователю {chat_id}")
+            logger.info(f"Сообщение отправлено пользователю {chat_id}")
             success_count += 1
             await asyncio.sleep(0.05)
         except Exception as e:
             fail_count += 1
-            logging.error(f"Ошибка при отправке пользователю {chat_id}: {e}")
+            logger.error(f"Ошибка при отправке пользователю {chat_id}: {e}")
 
     return success_count, fail_count
 
 
-@router.message(Command("broadcast"))
+@broadcast_router.message(Command("broadcast"))
 async def start_broadcast(message: types.Message, bot):
     if message.from_user.id not in ADMIN_IDS:
         await message.reply("⛔ У вас нет доступа к этой команде.")
