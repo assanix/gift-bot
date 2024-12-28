@@ -119,7 +119,7 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
         }
 
     except ValueError as ve:
-        logger.error(f"Ошибка проверки чека: {ve}")
+        logger.info(f"Ошибка проверки чека: {ve}")
         return {
             "valid": False,
             "error": str(ve)
