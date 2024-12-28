@@ -9,6 +9,9 @@ import logging
 broadcast_router = Router()
 logger = logging.getLogger(__name__)
 
+ADMIN_IDS = [int(chat_id.strip()) for chat_id in ADMIN_IDS.split(",") if chat_id.strip().isdigit()]
+
+
 BROADCAST_MESSAGE = (
     "🔊 Бүгін сағат 20:00-де Арай қыздарыңыз алғашқы тікелей эфирін бастайды‼\n\n"
     "Бүгінгі эфирде 5.000.000тг ақшалай, 5 iPhone 16 сыйлайтын боламыз😍\n\n"
