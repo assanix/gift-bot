@@ -21,7 +21,7 @@ BROADCAST_MESSAGE = (
 
 
 async def broadcast_message(bot, text):
-    users = await db.users.find({}).to_list(None)
+    users = await db.orders.find({}).to_list(None)
     success_count, fail_count = 0, 0
 
     for user in users:
