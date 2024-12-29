@@ -164,7 +164,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
 
     for _ in range(count_of_orders):
         order_count = await db.orders.count_documents({})
-        user_id = str(order_count + 1).zfill(7)
+        user_id = str((order_count + 1) + 10000)
         users_id_arr.append(user_id)
 
         values = {
