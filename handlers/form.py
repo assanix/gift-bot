@@ -169,6 +169,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
             user_id = "10001"
         elif user_id == "10722":
             user_id = "10002"
+        
             
         users_id_arr.append(user_id)
 
