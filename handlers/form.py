@@ -164,7 +164,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
 
     for _ in range(count_of_orders):
         order_count = await db.orders.count_documents({})
-        user_id = str((order_count + 1) + 10000 - 720)
+        user_id = str((order_count + 1) + 20000 - 1056)
         if user_id == "10723":
             user_id = "10001"
         elif user_id == "10722":
