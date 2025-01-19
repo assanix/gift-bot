@@ -98,7 +98,7 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
         extracted_text = await extract_text_from_file(file_path, loc)
         logger.info(f"Извлеченный текст: {extracted_text}")
         lines = extracted_text.splitlines()
-        res = {}
+        res = {"qr_code_line": "None"}
 
 
         for line in lines:
