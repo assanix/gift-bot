@@ -4,6 +4,7 @@ from PIL import Image
 import fitz
 import re
 import os
+from datetime import datetime
 
 from utils.localization import Localization
 
@@ -20,14 +21,11 @@ def preprocess_image(image_path, save_path="processed_image.jpg"):
         raise ValueError(f"Изображение не найдено по пути: {image_path}")
 
     img = deskew(img)
-
     img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-
     cv2.imwrite(save_path, img)
     return save_path
 
 def deskew(image):
-
     coords = np.column_stack(np.where(image > 0))
     angle = cv2.minAreaRect(coords)[-1]
     if angle < -45:
@@ -40,6 +38,15 @@ def deskew(image):
     rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
     return rotated
 
+def validate_datetime_format(date_string: str) -> bool:
+    """
+    Проверяет соответствие строки формату dd.mm.yyyy hh:mm:ss
+    """
+    try:
+        datetime.strptime(date_string, "%d.%m.%Y %H:%M:%S")
+        return True
+    except ValueError:
+        return False
 
 async def extract_text_from_file(file_path: str, loc: Localization) -> str:
     """
@@ -88,37 +95,63 @@ async def extract_text_from_file(file_path: str, loc: Localization) -> str:
     else:
         raise ValueError(loc.file_error)
 
-
 async def validate_receipt(file_path: str, loc: Localization) -> dict:
     """
-    Проверяет чек, извлекает сумму. Поднимает ошибки, если чек некорректен.
+    Проверяет чек, извлекает сумму и дату/время. Поднимает ошибки, если чек некорректен.
     """
     print(file_path, ": FILE PATH\n")
     try:
         extracted_text = await extract_text_from_file(file_path, loc)
         logger.info(f"Извлеченный текст: {extracted_text}")
         lines = extracted_text.splitlines()
-        res = {"qr_code_line": "None"}
+        res = {
+            "qr_code_line": "None",
+            "datetime_found": False
+        }
 
+        # Регулярное выражение для поиска даты и времени
+        datetime_pattern = r'\b\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2}\b'
 
         for line in lines:
             normalized_line = line.strip()
+            
+            # Поиск суммы
             if re.search(r"^\s*\d+(\s*\d{1,3})*\s*[₸тt]\s*$", normalized_line, re.IGNORECASE):
                 amount_line = line.strip()
                 logger.info(f"Найдена строка с суммой: {amount_line}")
                 amount_line = re.sub(r"[tт]", "₸", amount_line, flags=re.IGNORECASE)
                 res["amount_line"] = amount_line
+
+            # Поиск QR-кода
             if "QR" in normalized_line:
                 logger.info(f"Найден QR-код: {normalized_line}")
                 res["qr_code_line"] = normalized_line
-                
+
+            # Поиск даты и времени
+            datetime_match = re.search(datetime_pattern, normalized_line)
+            if datetime_match:
+                datetime_str = datetime_match.group()
+                if validate_datetime_format(datetime_str):
+                    logger.info(f"Найдены корректные дата и время: {datetime_str}")
+                    res["datetime"] = datetime_str
+                    res["datetime_found"] = True
+
+        # Проверка наличия всех необходимых данных
         if "amount_line" not in res or not res["amount_line"]:
             raise ValueError(loc.error_no_amount_line)
+        
+        if not res["datetime_found"]:
+            logger.info("Дата и время не найдены или имеют неверный формат")
+            return {
+                "valid": False,
+                "error": "Дата и время не найдены или имеют неверный формат"
+            }
 
         return {
             "valid": True,
             "amount_line": res["amount_line"],
-            "qr_code_line": res["qr_code_line"]
+            "qr_code_line": res["qr_code_line"],
+            "datetime": res["datetime"]
         }
 
     except ValueError as ve:
@@ -133,5 +166,3 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
             "valid": False,
             "error": loc.file_error
         }
-
-
