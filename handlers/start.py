@@ -31,8 +31,8 @@ async def cmd_start(message: types.Message, state: FSMContext, loc: Localization
     welcome_photo = types.FSInputFile("static/start_photo.jpg")
     await message.answer_photo(
         photo=welcome_photo,
-        caption="<b>👋🏻 Қош келдіңіз, құрметтім!\n"
-        "✅ Бұл отандық өнім \"QAUASAQ\" порошогын сатып алуға арналған ТЕЛЕГРАМ БОТ</b>"
+        caption="<b>👋🏻 👋🏻 Қош келдіңіз, құрметтім! \n"
+        "✅ Бұл отандық өнім “QAUASHAQ” порошогын сатып алуға арналған ТЕЛЕГРАМ БОТ</b>"
     )
 
     await message.answer(
