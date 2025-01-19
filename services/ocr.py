@@ -151,6 +151,7 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
         return {
             "valid": True,
             "amount_line": res["amount_line"],
+            "qr_code_line": res["qr_code_line"],
         }
 
     except ValueError as ve:
