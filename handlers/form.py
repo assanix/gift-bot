@@ -57,6 +57,16 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         os.remove(local_path)
         return
 
+    # Check if required fields exist in validation_result
+    required_fields = ["amount_line", "qr_code_line"]
+    missing_fields = [field for field in required_fields if field not in validation_result]
+    
+    if missing_fields:
+        logger.error(f"Missing required fields in validation result: {missing_fields}")
+        await message.answer(loc.error_invalid_receipt)
+        os.remove(local_path)
+        return
+
     amount_line = validation_result["amount_line"]
     qr_code_line = validation_result["qr_code_line"]
     
@@ -114,7 +124,6 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
     await processing_message.edit_text(loc.check_saved_message)
     await message.answer(f"{loc.fio_request}\n\n{loc.example_fio}")
     await state.set_state(OrderStates.waiting_for_fio)
-
 
 @form_router.message(StateFilter(OrderStates.waiting_for_fio))
 async def handle_fio(message: types.Message, state: FSMContext, loc: Localization):
