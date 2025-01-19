@@ -109,6 +109,7 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
                 amount_line = re.sub(r"[tт]", "₸", amount_line, flags=re.IGNORECASE)
                 res["amount_line"] = amount_line
             if "QR" in normalized_line:
+                logger.info(f"Найден QR-код: {normalized_line}")
                 res["qr_code_line"] = normalized_line
                 
         if "amount_line" not in res or not res["amount_line"]:
