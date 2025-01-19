@@ -12,7 +12,6 @@ def get_service():
     service = build('sheets', 'v4', credentials=creds)
     return service
 
-
 async def append_to_sheet(values, range_name):
     service = get_service()
     body = {'values': values}

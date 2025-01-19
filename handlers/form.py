@@ -56,8 +56,7 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         await message.answer(validation_result['error'])
         os.remove(local_path)
         return
-
-    # Check if required fields exist in validation_result
+    
     required_fields = ["amount_line", "qr_code_line"]
     missing_fields = [field for field in required_fields if field not in validation_result]
     

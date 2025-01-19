@@ -135,12 +135,13 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
                     logger.info(f"Найдены корректные дата и время: {datetime_str}")
                     res["datetime"] = datetime_str
                     res["datetime_found"] = True
+                    
 
         # Проверка наличия всех необходимых данных
         if "amount_line" not in res or not res["amount_line"]:
             raise ValueError(loc.error_no_amount_line)
         
-        if not res["datetime_found"]:
+        if res["datetime_found"]:
             logger.info("Дата и время не найдены или имеют неверный формат")
             return {
                 "valid": False,
@@ -150,8 +151,6 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
         return {
             "valid": True,
             "amount_line": res["amount_line"],
-            "qr_code_line": res["qr_code_line"],
-            "datetime": res["datetime"]
         }
 
     except ValueError as ve:
