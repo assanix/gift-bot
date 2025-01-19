@@ -106,12 +106,11 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
             if re.search(r"^\s*\d+(\s*\d{1,3})*\s*[₸тt]\s*$", normalized_line, re.IGNORECASE):
                 amount_line = line.strip()
                 logger.info(f"Найдена строка с суммой: {amount_line}")
-
                 amount_line = re.sub(r"[tт]", "₸", amount_line, flags=re.IGNORECASE)
                 res["amount_line"] = amount_line
-                break
             if "QR" in normalized_line:
                 res["qr_code_line"] = normalized_line
+                
         if "amount_line" not in res or not res["amount_line"]:
             raise ValueError(loc.error_no_amount_line)
 
