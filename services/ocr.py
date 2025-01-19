@@ -93,6 +93,7 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
     """
     Проверяет чек, извлекает сумму. Поднимает ошибки, если чек некорректен.
     """
+    print(file_path, ": FILE PATH\n")
     try:
         extracted_text = await extract_text_from_file(file_path, loc)
         logger.info(f"Извлеченный текст: {extracted_text}")

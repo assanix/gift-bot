@@ -58,16 +58,22 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         return
 
     amount_line = validation_result["amount_line"]
-    # qr_code_line = validation_result["qr_code_line"]
-    amount_cleaned = amount_line.replace("₸", "").replace(" ", "").strip()
+    qr_code_line = validation_result["qr_code_line"]
     
-    # existing_qr = await db.orders.find_one({"qr_code_line": qr_code_line})
-    # if existing_qr:
-    #     await message.answer(
-    #         loc.error_check_repeat
-    #     )
-    #     os.remove(local_path)
-    #     return
+    # Check for duplicate QR code
+    existing_receipt = await db.orders.find_one({"qr_code_line": qr_code_line})
+    if existing_receipt:
+        logger.warning(f"Попытка повторного использования чека с QR кодом: {qr_code_line}")
+        await message.answer(
+            loc.error_check_repeat + "\n\n" +
+            "Причина: Этот чек уже был использован ранее." +
+            f"\nID заказа: {existing_receipt.get('user_id')}" +
+            f"\nДата использования: {existing_receipt.get('timestamp')}"
+        )
+        os.remove(local_path)
+        return
+
+    amount_cleaned = amount_line.replace("₸", "").replace(" ", "").strip()
 
     try:
         amount = int(amount_cleaned)
@@ -94,7 +100,7 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
         await state.update_data({
             "check_link": s3_url,
             "count_of_orders": count_of_orders,
-            # "qr_code_line": qr_code_line
+            "qr_code_line": qr_code_line
         })
         logger.info(f"Файл успешно загружен в S3: {s3_url}")
     except Exception as e:
@@ -179,7 +185,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
             "address": address,
             "phone": phone,
             "check_link": check_link,
-            # "qr_code_line": qr_code_line,
+            "qr_code_line": qr_code_line,
             "timestamp": current_time,
             "count_of_orders": count_of_orders,
             "username": username,
