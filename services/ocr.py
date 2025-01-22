@@ -137,7 +137,6 @@ async def validate_receipt(file_path: str, loc: Localization) -> dict:
                     res["datetime_found"] = True
                     
 
-        # Проверка наличия всех необходимых данных
         if "amount_line" not in res or not res["amount_line"]:
             raise ValueError(loc.error_no_amount_line)
         
