@@ -7,6 +7,9 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile
 
+from config import DEFAULT_SHEET_RANGE
+from services.google_sheets import append_to_sheet
+
 from services.aws_s3 import upload_file_to_s3
 from services.ocr import validate_receipt
 from states.order_states import OrderStates
@@ -19,7 +22,6 @@ import re
 
 logger = logging.getLogger(__name__)
 form_router = Router()
-
 
 @form_router.message(F.content_type.in_({"photo", "document"}))
 async def handle_check(message: types.Message, state: FSMContext, loc: Localization = "ru"):
@@ -196,6 +198,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
             "language": language,
         }
 
+
         logger.info(f"Сохраняем данные пользователя {user_id} в базу.")
         try:
             await db.orders.insert_one(values)
@@ -225,6 +228,24 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
         phone=phone,
         user_id=", ".join(users_id_arr)
     )
+
+    list_of_values = [
+        [
+            user_id,
+            fio,
+            address,
+            phone,
+            check_link,
+            qr_code_line,
+            current_time,
+            username,
+            str(chat_id),
+            language
+        ]
+    ]
+
+    await append_to_sheet(list_of_values, DEFAULT_SHEET_RANGE)
+
     await message.answer(success_msg)
     await state.clear()
     logger.info(f"Состояние пользователя {username} очищено.")
