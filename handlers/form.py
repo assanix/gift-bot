@@ -169,7 +169,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
     phone = data.get("phone")
     check_link = data.get("check_link")
     qr_code_line = data.get("qr_code_line")  
-    current_time = (datetime.now() + timedelta(hours=5)).strftime("%Y-%m-%d %H:%M:%S")
+    current_time = str(datetime.now())
     username = message.from_user.username or "N/A"
     language = data.get("language")
     chat_id = message.chat.id
