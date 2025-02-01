@@ -238,6 +238,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
             check_link,
             qr_code_line,
             current_time,
+            count_of_orders,
             username,
             str(chat_id),
             language
