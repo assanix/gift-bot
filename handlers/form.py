@@ -23,6 +23,8 @@ import re
 logger = logging.getLogger(__name__)
 form_router = Router()
 
+
+
 @form_router.message(F.content_type.in_({"photo", "document"}))
 async def handle_check(message: types.Message, state: FSMContext, loc: Localization = "ru"):
     logger.info(f"Пользователь {message.from_user.id} загрузил чек.")
@@ -169,7 +171,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
     phone = data.get("phone")
     check_link = data.get("check_link")
     qr_code_line = data.get("qr_code_line")  
-    current_time = str(datetime.now())
+    current_time = str(datetime.now() + timedelta(hours=5))
     username = message.from_user.username or "N/A"
     language = data.get("language")
     chat_id = message.chat.id
