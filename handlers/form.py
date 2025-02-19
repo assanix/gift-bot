@@ -24,6 +24,20 @@ logger = logging.getLogger(__name__)
 form_router = Router()
 
 
+@form_router.message(lambda message: message.text.lower().startswith("номер заказа"))
+async def handle_order_number(message: types.Message, state: FSMContext, loc: Localization = "ru"):
+    logger.info(f"Пользователь {message.from_user.id} начал ввод с номера заказа.")
+
+    try:
+        order_number = message.text.replace("номер заказа", "").strip()
+        await state.update_data({"order_number": order_number})
+        await message.answer("Введите сумму покупки:")
+        await state.set_state(OrderStates.waiting_for_amount)
+    except Exception as e:
+        logger.error(f"Ошибка при обработке номера заказа: {e}")
+        await message.answer(loc.error_base)
+        return
+
 
 @form_router.message(F.content_type.in_({"photo", "document"}))
 async def handle_check(message: types.Message, state: FSMContext, loc: Localization = "ru"):
@@ -128,6 +142,35 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
     await message.answer(f"{loc.fio_request}\n\n{loc.example_fio}")
     await state.set_state(OrderStates.waiting_for_fio)
 
+@form_router.message(StateFilter(OrderStates.waiting_for_amount))
+async def handle_amount(message: types.Message, state: FSMContext, loc: Localization):
+    logger.info(f"Пользователь {message.from_user.id} ввел сумму: {message.text.strip()}.")
+    
+    try:
+        amount = int(message.text.strip())
+        count_of_orders = amount // 7900
+        
+        if count_of_orders == 0:
+            await message.answer(loc.error_minimum_amount.format(minimum=7900))
+            return
+            
+        await state.update_data({
+            "amount": amount,
+            "count_of_orders": count_of_orders,
+            "qr_code_line": f"NULL"
+        })
+        
+        await message.answer(
+            f"{amount}: тг! Было куплено {count_of_orders} шт."
+        )
+        
+        await message.answer(f"{loc.fio_request}\n\n{loc.example_fio}")
+        await state.set_state(OrderStates.waiting_for_fio)
+        
+    except ValueError:
+        await message.answer(loc.error_invalid_amount)
+        return
+
 @form_router.message(StateFilter(OrderStates.waiting_for_fio))
 async def handle_fio(message: types.Message, state: FSMContext, loc: Localization):
     logger.info(f"Пользователь {message.from_user.id} ввел ФИО: {message.text.strip()}.")
@@ -174,6 +217,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
     current_time = str(datetime.now() + timedelta(hours=5))
     username = message.from_user.username or "N/A"
     language = data.get("language")
+    order_number = data.get("order_number") if data.get("order_number") else ""
     chat_id = message.chat.id
     
     count_of_orders = data.get("count_of_orders", 1)
@@ -198,6 +242,7 @@ async def handle_phone(message: types.Message, state: FSMContext, loc: Localizat
             "username": username,
             "chat_id": str(chat_id),
             "language": language,
+            "order_number": order_number
         }
 
 

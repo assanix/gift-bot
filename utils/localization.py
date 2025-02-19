@@ -38,6 +38,7 @@ class Localization:
     error_minimum_amount: str
     error_check_repeat: str
     receipt_verified_message: str
+    error_base: str
 
 LOCALIZATIONS: Dict[str, Localization] = {
     'kk': Localization(
@@ -86,7 +87,8 @@ LOCALIZATIONS: Dict[str, Localization] = {
         error_invalid_amount="❌ Чектегі сома дұрыс емес. Чекті қайта жіберіңіз.",
         error_minimum_amount="❌ Ең төменгі сома {minimum} ₸ болуы керек.",
         error_check_repeat="❌ Осындай QR коды бар чек жіберілді!. Басқа чекті жіберіңіз.",
-        receipt_verified_message="✅ Чек сәтті тексерілді. Сома: {amount} ₸. Тауар саны: {count_of_orders}"
+        receipt_verified_message="✅ Чек сәтті тексерілді. Сома: {amount} ₸. Тауар саны: {count_of_orders}",
+        error_base="Белгісіз қате"
     ),
     'ru': Localization(
         start_message=(
@@ -134,7 +136,8 @@ LOCALIZATIONS: Dict[str, Localization] = {
         error_invalid_amount="❌ Сумма в чеке некорректна. Пожалуйста, отправьте чек снова.",
         error_minimum_amount="❌ Минимальная сумма должна быть {minimum} ₸.",\
         error_check_repeat="❌ Чек с таким QR кодом уже отправлен!. Пожалуйста, отправьте другой чек.",
-        receipt_verified_message="✅ Чек успешно проверен. Сумма: {amount} ₸. Количество товаров: {count_of_orders}"
+        receipt_verified_message="✅ Чек успешно проверен. Сумма: {amount} ₸. Количество товаров: {count_of_orders}",
+        error_base="Неизвестная ошибка"
     ),
     'en': Localization(
         start_message=(
@@ -182,6 +185,7 @@ LOCALIZATIONS: Dict[str, Localization] = {
         error_invalid_amount="❌ The amount in the receipt is invalid. Please resend the receipt.",
         error_minimum_amount="❌ The minimum amount must be {minimum} ₸.",
         error_check_repeat="❌ A check with this QR code has already been sent!. Please send another check.",
-        receipt_verified_message="✅ The receipt has been successfully verified. Amount: {amount} ₸. Number of items: {count_of_orders}"
+        receipt_verified_message="✅ The receipt has been successfully verified. Amount: {amount} ₸. Number of items: {count_of_orders}",
+        error_base="Unknown error"
     )
 }
