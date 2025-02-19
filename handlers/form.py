@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 form_router = Router()
 
 
-@form_router.message(lambda message: message.text.lower().startswith("номер заказа"))
+@form_router.message(F.text.startswith("номер заказа"))
 async def handle_order_number(message: types.Message, state: FSMContext, loc: Localization = "ru"):
     logger.info(f"Пользователь {message.from_user.id} начал ввод с номера заказа.")
 
