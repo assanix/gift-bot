@@ -33,3 +33,5 @@ USERS = os.getenv('USERS')
 ADMIN_IDS = os.getenv('ADMIN_ID')
 
 WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+
+KASPI_URL = os.getenv('KASPI_URL')
