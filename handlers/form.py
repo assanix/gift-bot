@@ -23,6 +23,7 @@ import re
 logger = logging.getLogger(__name__)
 form_router = Router()
 
+from services.kaspi_service import kaspi_service
 
 @form_router.message(F.text.startswith("номер заказа"))
 async def handle_order_number(message: types.Message, state: FSMContext, loc: Localization = "ru"):
@@ -30,9 +31,29 @@ async def handle_order_number(message: types.Message, state: FSMContext, loc: Lo
 
     try:
         order_number = message.text.replace("номер заказа", "").strip()
-        await state.update_data({"order_number": order_number})
-        await message.answer("Введите сумму покупки:")
-        await state.set_state(OrderStates.waiting_for_amount)
+        
+        res = dict(kaspi_service.get_info_about_order(order_number))
+        if res["data"]:
+            total_price = res["data"][0]["attributes"]["totalPrice"]
+            await message.answer(f"Номер заказа: {order_number}\n"
+                               f"Общая сумма покупки: {total_price} тенге.")
+            
+            await state.update_data({
+                                "order_number": order_number, 
+                                "amount": int(total_price), 
+                                "count_of_orders": int(total_price) // 7900
+                                })
+            order_exist = await db.orders.find_one({"order_number": order_number})
+            
+            if order_exist:
+                await message.answer(f"Заказ с номером {order_number} уже существует в базе данных.")
+                return
+            
+            await message.answer(f"{loc.fio_request}\n\n{loc.example_fio}")
+            await state.set_state(OrderStates.waiting_for_fio)           
+        else:
+            await message.answer("Заказ с таким номером не найден.")
+            return
     except Exception as e:
         logger.error(f"Ошибка при обработке номера заказа: {e}")
         await message.answer(loc.error_base)
@@ -80,7 +101,6 @@ async def handle_check(message: types.Message, state: FSMContext, loc: Localizat
     
     if missing_fields:
         logger.error(f"Missing required fields in validation result: {missing_fields}")
-        await message.answer(loc.error_invalid_receipt)
         os.remove(local_path)
         return
 
