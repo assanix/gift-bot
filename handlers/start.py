@@ -59,8 +59,6 @@ async def process_buy_button(callback_query: types.CallbackQuery, state: FSMCont
     
     instruction_text = (
         "⚙ Инструкция:\n"
-        "Оплата жасау үшін сілтемеге өтіңіз:\n"
-        "https://pay.kaspi.kz/pay/p1nqjjpr\n"
         "⚠ Бұл жерде міндетті түрде ең аз сумма: 7900 теңге болуы керек!\n"
         "2 порошок алсаңыз: 15800 теңге, 10 порошок - 79000 теңге деген сияқты ровно төлем жасайсыз!\n"
         "Қатесіз төлеңіз!\n"
